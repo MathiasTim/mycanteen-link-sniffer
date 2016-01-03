@@ -1,0 +1,17 @@
+{
+  "name": "mycanteen-link-sniffer",
+  "version": "0.0.1",
+  "description": "parsing the local canteen website for the pdf link with the weekly menu",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [
+    "canteen"
+  ],
+  "author": "Mathias Maier (@MathiasTim)",
+  "license": "MIT",
+  "dependencies": {
+    "htmlparser2": "^3.9.0",
+    "node-schedule": "^0.6.0",
+    "node-slack": "0.0.7"
+  }
+}
