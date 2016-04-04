@@ -19,6 +19,9 @@ const slackOptions = {
 
 class LinkFinder {
   constructor() {
+    if(!sBarOptions.lastPdfUrl.length) {
+      this.getDataOfUrl();
+    }
     this.scheduler();
   };
 
@@ -58,12 +61,11 @@ class LinkFinder {
   };
 
   scheduler () {
-    schedule.scheduleJob('15 12 * * 0', () => {
+    schedule.scheduleJob('15 12 * * 1', () => {
       let currentDate = new Date();
       console.log('Job startet', currentDate);
       this.getDataOfUrl();
     });
   };
 }
-
 new LinkFinder();
