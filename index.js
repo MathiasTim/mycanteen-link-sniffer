@@ -1,18 +1,23 @@
 'use strict';
-var http = require('http');
+var request = require('request');
 var htmlparser = require('htmlparser2');
 var schedule = require('node-schedule');
 var Slack = require('node-slack');
+var Mattermost = require('node-mattermost');
 
 const sBarOptions = {
   keywords: 'Wochenkarte',
   lastPdfUrl: '',
-  request: {
-    host: 'www.s-bar.de',
-    path: '/ihr-betriebsrestaurant/aktuelle-speiseplaene/banst-pt-wochenkarte.html'
-  }
+  host: 'http://www.s-bar.de/',
+  url: 'ihr-betriebsrestaurant/aktuelle-speiseplaene/banst-pt-wochenkarte.html',
 }
+
 const slackOptions = {
+  webHookUrl: '',
+  description: 'This week in our lovely canteen: '
+}
+
+const mattermostOptions = {
   webHookUrl: '',
   description: 'This week in our lovely canteen: '
 }
@@ -26,23 +31,24 @@ class LinkFinder {
   };
 
   getDataOfUrl () {
-    let request = http.request(sBarOptions.request, (res) => {
-      let data = '';
-      res.on('data', (chunk) => data += chunk);
-      res.on('end', () => this.parseHtml(data));
+    request(sBarOptions.host + sBarOptions.url, (error, response, body) => {
+      if (error) {
+        console.error(e.message);
+        return;
+      }
+      this.parseHtml(body);
     });
-    request.on('error', (e) => console.log(e.message));
-    request.end();
   };
 
   parseHtml (data) {
     let parser = new htmlparser.Parser({
       onopentag: (name, attribs) => {
         if (name === 'a' && attribs.href.indexOf(sBarOptions.keywords) !== -1) {
-          let url = sBarOptions.request.host + '/' + attribs.href;
+          let url = sBarOptions.host + attribs.href;
           if (sBarOptions.lastPdfUrl !== url) {
             sBarOptions.lastPdfUrl = url;
             this.sendToSlack(url);
+            this.sendToMattermost(url);
           } else {
             console.log('No new menu found.');
           }
@@ -59,6 +65,15 @@ class LinkFinder {
       text: slackOptions.description + text
     });
   };
+
+  sendToMattermost (text) {
+    var mattermost = new Mattermost(mattermostOptions.webHookUrl);
+    mattermost.send({
+      text: `${mattermostOptions.description}${text}`,
+      username: 'canteen',
+      icon_emoji: 'hamburger'
+    });
+  }
 
   scheduler () {
     schedule.scheduleJob('15 12 * * 1', () => {
