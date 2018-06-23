@@ -2,7 +2,6 @@
 var request = require('request');
 var htmlparser = require('htmlparser2');
 var schedule = require('node-schedule');
-var Slack = require('node-slack');
 var Mattermost = require('node-mattermost');
 
 const sBarOptions = {
@@ -12,14 +11,15 @@ const sBarOptions = {
   url: 'ihr-betriebsrestaurant/aktuelle-speiseplaene/banst-pt-wochenkarte.html',
 }
 
-const slackOptions = {
-  webHookUrl: '',
-  description: 'This week in our lovely canteen: '
+const cafeBarGruenen = {
+  host: 'http://wochenkarte.grnn.de/',
+  url: 'Wochenkarte.pdf'
 }
 
 const mattermostOptions = {
   webHookUrl: '',
-  description: 'This week in our lovely canteen: '
+  descriptionCanteen: 'This week in our lovely canteen: ',
+  descriptionCafeBarGruenen: 'This week at the Cafe Bar Gruenen: '
 }
 
 class LinkFinder {
@@ -47,7 +47,6 @@ class LinkFinder {
           let url = sBarOptions.host + attribs.href;
           if (sBarOptions.lastPdfUrl !== url) {
             sBarOptions.lastPdfUrl = url;
-            this.sendToSlack(url);
             this.sendToMattermost(url);
           } else {
             console.log('No new menu found.');
@@ -59,17 +58,11 @@ class LinkFinder {
     parser.end();
   };
 
-  sendToSlack (text) {
-    var slack = new Slack(slackOptions.webHookUrl);
-    slack.send({
-      text: slackOptions.description + text
-    });
-  };
-
   sendToMattermost (text) {
     var mattermost = new Mattermost(mattermostOptions.webHookUrl);
+    const cafeBarGruenenPdf = `${cafeBarGruenen.host}/${cafeBarGruenen.url}`;
     mattermost.send({
-      text: `${mattermostOptions.description}${text}`,
+      text: `${mattermostOptions.descriptionCanteen}${text} & ${mattermostOptions.descriptionCafeBarGruenen}${cafeBarGruenenPdf}`,
       username: 'canteen',
       icon_emoji: 'hamburger'
     });
