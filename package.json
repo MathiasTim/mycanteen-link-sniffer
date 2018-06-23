@@ -13,7 +13,6 @@
     "htmlparser2": "^3.9.0",
     "node-mattermost": "0.0.1",
     "node-schedule": "^0.6.0",
-    "node-slack": "0.0.7",
     "request": "^2.79.0"
   }
 }
