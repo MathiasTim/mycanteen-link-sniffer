@@ -22,6 +22,12 @@ const mattermostOptions = {
   descriptionCafeBarGruenen: 'This week at the Cafe Bar Gruenen: '
 }
 
+const teamsOptions = {
+  webHookUrl: '',
+  descriptionCanteen: 'This week in our lovely canteen: ',
+  descriptionCafeBarGruenen: 'This week at the Cafe Bar Gruenen: '
+}
+
 class LinkFinder {
   constructor() {
     if(!sBarOptions.lastPdfUrl.length) {
@@ -48,6 +54,7 @@ class LinkFinder {
           if (sBarOptions.lastPdfUrl !== url) {
             sBarOptions.lastPdfUrl = url;
             this.sendToMattermost(url);
+            this.sendToTeams(url);
           } else {
             console.log('No new menu found.');
           }
@@ -66,6 +73,31 @@ class LinkFinder {
       username: 'canteen',
       icon_emoji: 'hamburger'
     });
+  }
+
+  sendToTeams (text) {
+    const cafeBarGruenenPdf = `${cafeBarGruenen.host}/${cafeBarGruenen.url}`;
+    request.post(teamsOptions.webHookUrl, {
+      json: true,
+      body: {
+        "@type": "MessageCard",
+        "@context": "http://schema.org/extensions",
+        "themeColor": "367a47",
+        "summary": "This weeks food",
+        "sections": [
+          {
+            "activityTitle": `${teamsOptions.descriptionCanteen}`,
+            "activitySubtitle": `[open PDF](${text})`,
+            "activityImage": "https://media.cylex.de/companies/2632/781/logo/logo.jpg",
+          },
+          {
+            "activityTitle": `${teamsOptions.descriptionCafeBarGruenen}`,
+            "activitySubtitle": `[open PDF](${cafeBarGruenenPdf})`,
+            "activityImage": "https://scontent-frx5-1.xx.fbcdn.net/v/t1.0-9/24129588_518509321861892_4622374918589760501_n.png?_nc_cat=102&_nc_ht=scontent-frx5-1.xx&oh=948aa8762d027776b5917179ddb57e91&oe=5DBF6937",
+          }
+        ]
+      }
+    })
   }
 
   scheduler () {
